@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
@@ -17,6 +18,9 @@ public class FlappyCorgo extends ApplicationAdapter {
 	SpriteBatch batch;
 	Texture tlo;
 	//ShapeRenderer shapeRenderer;
+    int punkty = 0;
+    int tubaPunktujaca = 0;     // Tuba, ktorej przekroczenie skutkuje dodaniem punktu
+	BitmapFont font;
 
 	Texture[] corgisie;
 	Texture tubaGora;
@@ -46,6 +50,10 @@ public class FlappyCorgo extends ApplicationAdapter {
 		batch = new SpriteBatch();
 		tlo = new Texture("bg.png");
 		//shapeRenderer = new	ShapeRenderer();
+		font = new BitmapFont();
+		font.setColor(Color.WHITE);
+		font.getData().setScale(10);
+
 		corgiKolko = new Circle();
 		dolneTubyRect = new Rectangle[liczbaTub];
 		gorneTubyRect = new Rectangle[liczbaTub];
@@ -77,18 +85,28 @@ public class FlappyCorgo extends ApplicationAdapter {
 
 	    if (stanGry != 0) {
 
+            if (tubaX[tubaPunktujaca] < Gdx.graphics.getWidth()/2) {      // Sprawdzenie czy nalezy dodać punkt
+                punkty++;
+                Gdx.app.log("Punkty: ", String.valueOf(punkty));
+                if (tubaPunktujaca < liczbaTub-1)
+                    tubaPunktujaca++;
+                else
+                    tubaPunktujaca = 0;
+            }
+
 			if (Gdx.input.justTouched()) {
 				predkosc = -30;
 			}
 
-			for (int i=0; i<liczbaTub; i++) {
+			for (int i=0; i < liczbaTub; i++) {
 
 				if (tubaX[i] < -tubaDol.getWidth()) {		// Czy tuba wychodzi poza ekran
 					tubaX[i] += liczbaTub * odlegloscMiedzyTubami;		// Przesuwam w prawo
 					przesuniecie[i] = (losujemy.nextFloat() - 0.5f) * (Gdx.graphics.getHeight() - szczelina - 200);
 				}
 				else
-					tubaX[i] -= predkoscTub;
+                    tubaX[i] -= predkoscTub;
+
 
 				batch.draw(tubaGora, tubaX[i], Gdx.graphics.getHeight()/2+szczelina/2 + przesuniecie[i]);
 				batch.draw(tubaDol, tubaX[i], Gdx.graphics.getHeight()/2-szczelina/2-tubaDol.getHeight() + przesuniecie[i]);
@@ -97,7 +115,7 @@ public class FlappyCorgo extends ApplicationAdapter {
                 dolneTubyRect[i] = new Rectangle(tubaX[i], Gdx.graphics.getHeight()/2-szczelina/2-tubaDol.getHeight() + przesuniecie[i], tubaDol.getWidth(), tubaDol.getHeight());
 			}
 
-			if (corgiY>0 || predkosc<0) {
+			if (corgiY > 0 || predkosc < 0) {
 				predkosc += grawitacja;
 				corgiY -= predkosc;
 			}
@@ -115,6 +133,8 @@ public class FlappyCorgo extends ApplicationAdapter {
 
 
         batch.draw(corgisie[stanCorgisia], Gdx.graphics.getWidth()/2 - corgisie[stanCorgisia].getWidth()/2, corgiY );
+
+        font.draw(batch, String.valueOf(punkty), 100, 200);
         batch.end();
 
 		corgiKolko.set(Gdx.graphics.getWidth()/2, corgiY + corgisie[stanCorgisia].getHeight()/2, corgisie[stanCorgisia].getWidth()/2);
