@@ -12,10 +12,21 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 
 import java.util.Random;
 
 public class FlappyCorgo extends ApplicationAdapter {
+
+    Interfejs in;
+
+    public FlappyCorgo(Interfejs interfejs) {
+        this.in = interfejs;
+    }
+
 	SpriteBatch batch;
 	Texture tlo;
 	//ShapeRenderer shapeRenderer;
@@ -27,6 +38,7 @@ public class FlappyCorgo extends ApplicationAdapter {
 	Texture tubaGora;
 	Texture tubaDol;
 	Texture koniecGry;
+	Texture pomoc;
 
 	int stanCorgisia = 0;
 	float corgiY = 0;
@@ -50,9 +62,16 @@ public class FlappyCorgo extends ApplicationAdapter {
 
     int highscore = 0;
 	Preferences pref;
+
+	Stage stage;
+    TextButton button;
+    TextButton.TextButtonStyle textButtonStyle;
+    boolean czyHelpKlikniety = false;
 	
 	@Override
 	public void create () {
+	    stage = new Stage();
+        Gdx.input.setInputProcessor(stage);
 		batch = new SpriteBatch();
 		tlo = new Texture("bg.png");
 		//shapeRenderer = new	ShapeRenderer();
@@ -67,6 +86,7 @@ public class FlappyCorgo extends ApplicationAdapter {
 		tubaGora = new Texture("toptube.png");
 		tubaDol = new Texture("bottomtube.png");
 		koniecGry = new Texture("gameover.png");
+		pomoc = new Texture("howtoplay.png");
 
 		corgisie = new Texture[2];
 		corgisie[0] = new Texture("bird.png");
@@ -76,6 +96,13 @@ public class FlappyCorgo extends ApplicationAdapter {
 		maksPrzesuniecie = Gdx.graphics.getHeight()/2 - szczelina/2 - 100;
 		losujemy = new Random();
 		odlegloscMiedzyTubami = Gdx.graphics.getWidth() * 0.75f;
+
+        textButtonStyle = new TextButton.TextButtonStyle();
+        textButtonStyle.font = font;
+        button = new TextButton("?", textButtonStyle);
+        button.setX(Gdx.graphics.getWidth()-150);
+        button.setY(Gdx.graphics.getHeight()-200);
+        stage.addActor(button);
 
 		startGry();
 		pref = Gdx.app.getPreferences("my-preferences");
@@ -99,8 +126,18 @@ public class FlappyCorgo extends ApplicationAdapter {
 
 	@Override
 	public void render () {
+
 		batch.begin();
 		batch.draw(tlo, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+
+
+		button.addListener(new ChangeListener() {
+			@Override
+			public void changed (ChangeEvent event, Actor actor) {
+				czyHelpKlikniety = true;
+			}
+		});
+
 
 	    if (stanGry == 1) {		// Stan 1 to poczatek gry
 
@@ -113,7 +150,7 @@ public class FlappyCorgo extends ApplicationAdapter {
                     tubaPunktujaca = 0;
             }
 
-			if (Gdx.input.justTouched()) {
+			if (Gdx.input.justTouched() && !czyHelpKlikniety) {
 				predkosc = -30;
 			}
 
@@ -143,7 +180,7 @@ public class FlappyCorgo extends ApplicationAdapter {
 
         }
 	    else if (stanGry == 0) {
-            if (Gdx.input.justTouched())
+            if (Gdx.input.justTouched()  && !czyHelpKlikniety)
                 stanGry = 1;
         }
 	    else if (stanGry == 2) {
@@ -153,11 +190,12 @@ public class FlappyCorgo extends ApplicationAdapter {
 	    		highscore = punkty;
 				pref.putInteger("Wynik", highscore);
 				pref.flush();
+				in.toastHighscore();
 			}
 			String txt = "Highscore: " + String.valueOf(highscore);
 			font.draw(batch, txt, 150, Gdx.graphics.getHeight()/2+400);
 
-            if (Gdx.input.justTouched()) {
+            if (Gdx.input.justTouched()  && !czyHelpKlikniety) {
                 stanGry = 1;
                 startGry();
                 punkty = 0;
@@ -177,7 +215,20 @@ public class FlappyCorgo extends ApplicationAdapter {
 
         font.draw(batch, String.valueOf(punkty), 100, 200);
 
+
+		if (czyHelpKlikniety) {
+			batch.draw(pomoc, Gdx.graphics.getWidth()/2 - pomoc.getWidth()/2, Gdx.graphics.getHeight()/2 - pomoc.getHeight()/2, pomoc.getWidth(), pomoc.getHeight());
+
+			if (Gdx.input.justTouched()) {
+				czyHelpKlikniety = false;
+			}
+		}
+
+
         batch.end();
+
+		stage.draw();
+
 
 		corgiKolko.set(Gdx.graphics.getWidth()/2, corgiY + corgisie[stanCorgisia].getHeight()/2, corgisie[stanCorgisia].getWidth()/2);
 
@@ -190,13 +241,14 @@ public class FlappyCorgo extends ApplicationAdapter {
 			//shapeRenderer.rect(gorneTubyRect[i].x, gorneTubyRect[i].y, gorneTubyRect[i].width, gorneTubyRect[i].height);
 
 			if (Intersector.overlaps(corgiKolko, dolneTubyRect[i]) || Intersector.overlaps(corgiKolko, gorneTubyRect[i])) {		//Kolizje
-				//if (punkty>5)
-				stanGry = 2;	// Koniec gry po kolizji
+				if (punkty>5)
+				    stanGry = 2;	// Koniec gry po kolizji
 			}
         }
 		//shapeRenderer.end();
 
 
 	}
+
 
 }
