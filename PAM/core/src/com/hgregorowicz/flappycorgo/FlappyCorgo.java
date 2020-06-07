@@ -33,12 +33,17 @@ public class FlappyCorgo extends ApplicationAdapter {
     int punkty = 0;
     int tubaPunktujaca = 0;     // Tuba, ktorej przekroczenie skutkuje dodaniem punktu
 	BitmapFont font;
+	BitmapFont fontBlack;
+	BitmapFont fontPurple;
 
 	Texture[] corgisie;
 	Texture tubaGora;
 	Texture tubaDol;
 	Texture koniecGry;
 	Texture pomoc;
+	Texture przyciskPomoc;
+	Texture przyciskZmiany1;
+	Texture przyciskZmiany2;
 
 	int stanCorgisia = 0;
 	float corgiY = 0;
@@ -67,17 +72,27 @@ public class FlappyCorgo extends ApplicationAdapter {
     TextButton button;
     TextButton.TextButtonStyle textButtonStyle;
     boolean czyHelpKlikniety = false;
+
+    TextButton buttonZmiany;
+    boolean zmianaTla = false;
+    boolean obecnetlo = false;
 	
 	@Override
 	public void create () {
 	    stage = new Stage();
         Gdx.input.setInputProcessor(stage);
 		batch = new SpriteBatch();
-		tlo = new Texture("bg.png");
+		tlo = new Texture("tlo.png");
 		//shapeRenderer = new	ShapeRenderer();
 		font = new BitmapFont();
 		font.setColor(Color.WHITE);
 		font.getData().setScale(10);
+		fontBlack = new BitmapFont();
+		fontBlack.setColor(Color.BLACK);
+		fontBlack.getData().setScale(10);
+		fontPurple = new BitmapFont();
+		fontPurple.setColor(Color.PURPLE);
+		fontPurple.getData().setScale(10);
 
 		corgiKolko = new Circle();
 		dolneTubyRect = new Rectangle[liczbaTub];
@@ -85,12 +100,15 @@ public class FlappyCorgo extends ApplicationAdapter {
 
 		tubaGora = new Texture("toptube.png");
 		tubaDol = new Texture("bottomtube.png");
-		koniecGry = new Texture("gameover.png");
+		koniecGry = new Texture("over.png");
 		pomoc = new Texture("howtoplay.png");
+		przyciskPomoc = new Texture("help_btn.png");
+		przyciskZmiany1 = new Texture("change_btn1.png");
+		przyciskZmiany2 = new Texture("change_btn2.png");
 
 		corgisie = new Texture[2];
-		corgisie[0] = new Texture("bird.png");
-		corgisie[1] = new Texture("bird2.png");
+		corgisie[0] = new Texture("corgi.png");
+		corgisie[1] = new Texture("corgi1.png");
 
 		corgiY = Gdx.graphics.getHeight()/2 - corgisie[0].getHeight()/2;
 		maksPrzesuniecie = Gdx.graphics.getHeight()/2 - szczelina/2 - 100;
@@ -101,8 +119,13 @@ public class FlappyCorgo extends ApplicationAdapter {
         textButtonStyle.font = font;
         button = new TextButton("?", textButtonStyle);
         button.setX(Gdx.graphics.getWidth()-150);
-        button.setY(Gdx.graphics.getHeight()-200);
+        button.setY(Gdx.graphics.getHeight()-150);
         stage.addActor(button);
+
+        buttonZmiany = new TextButton("ci", textButtonStyle);
+        buttonZmiany.setX(0);
+        buttonZmiany.setY(Gdx.graphics.getHeight()-150);
+        stage.addActor(buttonZmiany);
 
 		startGry();
 		pref = Gdx.app.getPreferences("my-preferences");
@@ -137,7 +160,12 @@ public class FlappyCorgo extends ApplicationAdapter {
 				czyHelpKlikniety = true;
 			}
 		});
-
+        buttonZmiany.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                zmianaTla = true;
+            }
+        });
 
 	    if (stanGry == 1) {		// Stan 1 to poczatek gry
 
@@ -184,7 +212,7 @@ public class FlappyCorgo extends ApplicationAdapter {
                 stanGry = 1;
         }
 	    else if (stanGry == 2) {
-	    	batch.draw(koniecGry, Gdx.graphics.getWidth()/2 - koniecGry.getWidth()/2, Gdx.graphics.getHeight()/2 - koniecGry.getHeight()/2);
+	    	batch.draw(koniecGry, Gdx.graphics.getWidth()/2 - koniecGry.getWidth()/2, Gdx.graphics.getHeight()/2 - koniecGry.getHeight()/2+250);
 
 	    	if (punkty>highscore) {
 	    		highscore = punkty;
@@ -193,7 +221,7 @@ public class FlappyCorgo extends ApplicationAdapter {
 				in.toastHighscore();
 			}
 			String txt = "Highscore: " + String.valueOf(highscore);
-			font.draw(batch, txt, 150, Gdx.graphics.getHeight()/2+400);
+			fontPurple.draw(batch, txt, 150, Gdx.graphics.getHeight()/2+600);
 
             if (Gdx.input.justTouched()  && !czyHelpKlikniety) {
                 stanGry = 1;
@@ -213,7 +241,7 @@ public class FlappyCorgo extends ApplicationAdapter {
 
         batch.draw(corgisie[stanCorgisia], Gdx.graphics.getWidth()/2 - corgisie[stanCorgisia].getWidth()/2, corgiY );
 
-        font.draw(batch, String.valueOf(punkty), 100, 200);
+        fontBlack.draw(batch, String.valueOf(punkty), 20, 130);
 
 
 		if (czyHelpKlikniety) {
@@ -224,10 +252,29 @@ public class FlappyCorgo extends ApplicationAdapter {
 			}
 		}
 
+		if (zmianaTla) {
+		    if (!obecnetlo) {
+		        tlo = new Texture("tlo2.png");
+		        obecnetlo = true;
+            }
+		    else {
+		        tlo = new Texture("tlo.png");
+		        obecnetlo = false;
+            }
+		    zmianaTla = false;
+        }
 
         batch.end();
 
 		stage.draw();
+		batch.begin();
+		batch.draw(przyciskPomoc, Gdx.graphics.getWidth()-150, Gdx.graphics.getHeight()-150);
+		if (!obecnetlo)
+			batch.draw(przyciskZmiany1, 0, Gdx.graphics.getHeight()-150);
+		else
+			batch.draw(przyciskZmiany2, 0, Gdx.graphics.getHeight()-150);
+
+		batch.end();
 
 
 		corgiKolko.set(Gdx.graphics.getWidth()/2, corgiY + corgisie[stanCorgisia].getHeight()/2, corgisie[stanCorgisia].getWidth()/2);
@@ -241,7 +288,7 @@ public class FlappyCorgo extends ApplicationAdapter {
 			//shapeRenderer.rect(gorneTubyRect[i].x, gorneTubyRect[i].y, gorneTubyRect[i].width, gorneTubyRect[i].height);
 
 			if (Intersector.overlaps(corgiKolko, dolneTubyRect[i]) || Intersector.overlaps(corgiKolko, gorneTubyRect[i])) {		//Kolizje
-				if (punkty>5)
+				//if (punkty>5)
 				    stanGry = 2;	// Koniec gry po kolizji
 			}
         }
