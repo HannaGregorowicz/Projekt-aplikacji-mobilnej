@@ -3,6 +3,7 @@ package com.hgregorowicz.flappycorgo;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -44,6 +45,8 @@ public class FlappyCorgo extends ApplicationAdapter {
 	Texture przyciskPomoc;
 	Texture przyciskZmiany1;
 	Texture przyciskZmiany2;
+
+	Music muzyka;
 
 	int stanCorgisia = 0;
 	float corgiY = 0;
@@ -93,6 +96,10 @@ public class FlappyCorgo extends ApplicationAdapter {
 		fontPurple = new BitmapFont();
 		fontPurple.setColor(Color.PURPLE);
 		fontPurple.getData().setScale(10);
+
+		muzyka = Gdx.audio.newMusic(Gdx.files.internal("Corgi_Funk.mp3"));
+		muzyka.setLooping(true);
+		muzyka.play();
 
 		corgiKolko = new Circle();
 		dolneTubyRect = new Rectangle[liczbaTub];
